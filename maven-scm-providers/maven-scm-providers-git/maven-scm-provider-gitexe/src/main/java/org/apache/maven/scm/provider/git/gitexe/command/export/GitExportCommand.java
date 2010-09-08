@@ -55,6 +55,8 @@ public class GitExportCommand
                                                     final ScmVersion scmVersion, final String outputDirectory )
         throws ScmException
     {
+        checkoutCommand.setLogger( getLogger() );
+
         final CommandParameters parameters = new CommandParameters();
         parameters.setScmVersion( CommandParameter.SCM_VERSION, scmVersion );
         parameters.setString( CommandParameter.RECURSIVE, Boolean.TRUE.toString() );

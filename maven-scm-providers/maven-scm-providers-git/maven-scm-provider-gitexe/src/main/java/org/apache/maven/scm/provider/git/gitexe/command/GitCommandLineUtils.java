@@ -27,6 +27,7 @@ import org.codehaus.plexus.util.cli.Commandline;
 import org.codehaus.plexus.util.cli.StreamConsumer;
 
 import java.io.File;
+import java.io.PrintStream;
 import java.util.Iterator;
 import java.util.List;
 
@@ -39,16 +40,16 @@ import java.util.List;
  */
 public class GitCommandLineUtils
 {
-    public static void addTarget( Commandline cl, List/*<File>*/ files )
+    public static void addTarget( final Commandline cl, final List/*<File>*/files )
     {
         if ( files == null || files.isEmpty() )
         {
             return;
         }
 
-        for ( Iterator i = files.iterator(); i.hasNext(); )
+        for ( final Iterator i = files.iterator(); i.hasNext(); )
         {
-            File f = (File) i.next();
+            final File f = (File) i.next();
             String relativeFile = f.getPath();
 
             if ( f.getAbsolutePath().startsWith( cl.getWorkingDirectory().getAbsolutePath() ) )
@@ -68,14 +69,14 @@ public class GitCommandLineUtils
 
     }
 
-    public static Commandline getBaseGitCommandLine( File workingDirectory, String command )
+    public static Commandline getBaseGitCommandLine( final File workingDirectory, final String command )
     {
         if ( command == null || command.length() == 0 )
         {
             return null;
         }
 
-        Commandline cl = new Commandline();
+        final Commandline cl = new Commandline();
 
         cl.setExecutable( "git" );
 
@@ -86,8 +87,8 @@ public class GitCommandLineUtils
         return cl;
     }
 
-    public static int execute( Commandline cl, StreamConsumer consumer, CommandLineUtils.StringStreamConsumer stderr,
-                               ScmLogger logger )
+    public static int execute( final Commandline cl, final StreamConsumer consumer,
+                               final CommandLineUtils.StringStreamConsumer stderr, final ScmLogger logger )
         throws ScmException
     {
         if ( logger.isInfoEnabled() )
@@ -99,9 +100,9 @@ public class GitCommandLineUtils
         int exitCode;
         try
         {
-            exitCode = CommandLineUtils.executeCommandLine( cl, consumer, stderr );
+            exitCode = CommandLineUtils.executeCommandLine( cl, new TeeConsumer( System.out, consumer ), stderr );
         }
-        catch ( CommandLineException ex )
+        catch ( final CommandLineException ex )
         {
             throw new ScmException( "Error while executing command.", ex );
         }
@@ -109,9 +110,9 @@ public class GitCommandLineUtils
         return exitCode;
     }
 
-    public static int execute( Commandline cl, CommandLineUtils.StringStreamConsumer stdout,
-                               CommandLineUtils.StringStreamConsumer stderr, ScmLogger logger )
-    throws ScmException
+    public static int execute( final Commandline cl, final CommandLineUtils.StringStreamConsumer stdout,
+                               final CommandLineUtils.StringStreamConsumer stderr, final ScmLogger logger )
+        throws ScmException
     {
         if ( logger.isInfoEnabled() )
         {
@@ -122,9 +123,9 @@ public class GitCommandLineUtils
         int exitCode;
         try
         {
-            exitCode = CommandLineUtils.executeCommandLine( cl, stdout, stderr );
+            exitCode = CommandLineUtils.executeCommandLine( cl, new TeeConsumer( System.out, stdout ), stderr );
         }
-        catch ( CommandLineException ex )
+        catch ( final CommandLineException ex )
         {
             throw new ScmException( "Error while executing command.", ex );
         }
@@ -132,5 +133,23 @@ public class GitCommandLineUtils
         return exitCode;
     }
 
+    public static final class TeeConsumer
+        implements StreamConsumer
+    {
+        private final PrintStream out;
 
+        private final StreamConsumer consumer;
+
+        public TeeConsumer( final PrintStream out, final StreamConsumer consumer )
+        {
+            this.out = out;
+            this.consumer = consumer;
+        }
+
+        public void consumeLine( final String line )
+        {
+            out.println( line );
+            consumer.consumeLine( line );
+        }
+    }
 }
