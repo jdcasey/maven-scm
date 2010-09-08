@@ -31,6 +31,7 @@ import org.apache.maven.scm.provider.git.gitexe.command.changelog.GitChangeLogCo
 import org.apache.maven.scm.provider.git.gitexe.command.checkin.GitCheckInCommand;
 import org.apache.maven.scm.provider.git.gitexe.command.checkout.GitCheckOutCommand;
 import org.apache.maven.scm.provider.git.gitexe.command.diff.GitDiffCommand;
+import org.apache.maven.scm.provider.git.gitexe.command.export.GitExportCommand;
 import org.apache.maven.scm.provider.git.gitexe.command.list.GitListCommand;
 import org.apache.maven.scm.provider.git.gitexe.command.remove.GitRemoveCommand;
 import org.apache.maven.scm.provider.git.gitexe.command.status.GitStatusCommand;
@@ -87,7 +88,7 @@ public class GitExeScmProvider
     /** {@inheritDoc} */
     protected GitCommand getExportCommand()
     {
-        return null; //X TODO
+        return new GitExportCommand(); //X TODO
     }
 
     /** {@inheritDoc} */
@@ -127,12 +128,12 @@ public class GitExeScmProvider
     }
 
     /** {@inheritDoc} */
-    protected String getRepositoryURL( File path )
+    protected String getRepositoryURL( final File path )
         throws ScmException
     {
         // Note: I need to supply just 1 absolute path, but ScmFileSet won't let me without
         // a basedir (which isn't used here anyway), so use a dummy file.
-        GitInfoScmResult result = info( null, new ScmFileSet( new File( "" ), path ), null );
+        final GitInfoScmResult result = info( null, new ScmFileSet( new File( "" ), path ), null );
 
         if ( result.getInfoItems().size() != 1 )
         {
